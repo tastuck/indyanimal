@@ -1,0 +1,12 @@
+RewriteEngine On
+
+# Don’t rewrite requests to actual files
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Let uploads be served as-is
+RewriteRule ^uploads/(.*)$ uploads/$1 [L]
+
+# Rewrite everything else to index.php
+RewriteRule ^ index.php [QSA,L]

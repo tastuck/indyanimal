@@ -1,0 +1,232 @@
+/* --- General Reset --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Lucida Console', Monaco, monospace;
+    background: linear-gradient(135deg, #e6e6fa, #ffe4e1);
+    color: #111;
+    padding: 2rem;
+}
+
+header {
+    background: linear-gradient(to right, #ff69b4, #87cefa);
+    color: #fff;
+    text-align: center;
+    padding: 2rem 1rem;
+    box-shadow: 0 0 20px #999;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px #00000055;
+}
+
+nav {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+}
+
+nav a {
+    color: #000;
+    background: #fff;
+    border: 2px solid #000;
+    padding: 0.3rem 0.7rem;
+    margin: 0 0.5rem;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+nav a:hover {
+    background: #000;
+    color: #fff;
+}
+
+/* --- Form Layout --- */
+form {
+    max-width: 400px;
+    margin: 2rem auto;
+    background: #fff0f5;
+    border: 2px solid #000;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 5px 5px #ff69b4;
+}
+
+#search-form {
+    position: relative;
+    overflow: visible;
+    z-index: 1;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 0.7rem;
+    margin: 0.5rem 0;
+    border: 2px solid #000;
+    background: #fff;
+    font-family: inherit;
+}
+
+button {
+    background: #000;
+    color: #fff;
+    padding: 0.7rem 1.2rem;
+    border: 2px solid #000;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 1rem;
+    width: 100%;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #ff69b4;
+    color: #000;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+    margin: 1rem auto;
+    text-align: center;
+}
+
+footer {
+    text-align: center;
+    margin-top: 3rem;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+hr {
+    margin: 2rem 0;
+    border: none;
+    border-top: 2px dashed #aaa;
+}
+
+section {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 10px;
+}
+
+a {
+    color: #0000ee;
+}
+
+a:hover {
+    color: #ff1493;
+}
+
+/* --- Select2 Styling --- */
+.select2-container {
+    width: 100% !important;
+    z-index: 9999;
+    position: relative;
+}
+
+.select2-dropdown {
+    z-index: 99999;
+    position: absolute;
+    background-color: #fff;
+    border: 2px solid #000;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.select2-container--default .select2-selection--multiple {
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 10px;
+    min-height: 2.5rem;
+    padding: 6px;
+    font-family: inherit;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    box-shadow: inset 0 0 3px #ff69b4;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    font-weight: bold;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #ff69b4;
+    margin-right: 6px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.select2-search--inline .select2-search__field {
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 0.85rem;
+    padding: 4px;
+    margin: 0;
+    min-width: 120px;
+    flex: 1;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background: #ff69b4;
+    color: #000;
+}
+
+.date-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.date-wrapper input[type="date"] {
+    padding-right: 2.2rem;
+}
+
+#clear-date {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: #ff69b4;
+    color: #000;
+    font-weight: bold;
+    font-size: 1rem;
+    width: 1.8rem;
+    height: 1.8rem;
+    line-height: 1;
+    border-radius: 50%;
+    box-shadow: 1px 1px 2px #00000066;
+    cursor: pointer;
+    padding: 0;
+}
+

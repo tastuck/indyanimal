@@ -1,0 +1,15 @@
+# Ignore environment variables file
+config/.env
+
+# Ignore Python password scripts
+scripts/hash_password.py
+scripts/verify_password.py
+
+# Ignore logs
+scripts/debug.log
+*.log
+log.txt
+
+.env
+/vendor/
+
