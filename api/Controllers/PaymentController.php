@@ -17,6 +17,7 @@ use api\Models\Event;
 
 class PaymentController
 {
+    // handle Stripe webhook for successful checkouts
     public function handleWebhook(Request $request, Response $response): Response
     {
         $payload = (string) $request->getBody();
@@ -27,21 +28,24 @@ class PaymentController
             $event = Webhook::constructEvent($payload, $sigHeader, $secret);
         } catch (\UnexpectedValueException | SignatureVerificationException $e) {
             error_log('Stripe webhook error: ' . $e->getMessage());
-            return $response->withStatus(400)->withHeader('Content-Type', 'text/plain')->write('Invalid webhook');
+            return $response->withStatus(400)
+                ->withHeader('Content-Type', 'text/plain')
+                ->write('Invalid webhook');
         }
 
+        // mark the order as complete when checkout finishes
         if ($event->type === 'checkout.session.completed') {
             $session = $event->data->object;
             $providerOrderId = $session->id;
             Order::markAsComplete($providerOrderId);
         }
 
-        return $response
-            ->withStatus(200)
+        return $response->withStatus(200)
             ->withHeader('Content-Type', 'application/json')
             ->write(json_encode(['status' => 'ok']));
     }
 
+    // start a Stripe checkout session for an event
     public function createSession(Request $request, Response $response, array $args): Response
     {
         \Stripe\Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY'] ?? '');
@@ -50,12 +54,16 @@ class PaymentController
         $userId = $_SESSION['user']['user_id'] ?? null;
 
         if (!$userId) {
-            return $response->withStatus(401)->withHeader('Content-Type', 'application/json')->write(json_encode(['error' => 'Not logged in']));
+            return $response->withStatus(401)
+                ->withHeader('Content-Type', 'application/json')
+                ->write(json_encode(['error' => 'Not logged in']));
         }
 
         $event = Event::getById($eventId);
         if (!$event) {
-            return $response->withStatus(404)->withHeader('Content-Type', 'application/json')->write(json_encode(['error' => 'Event not found']));
+            return $response->withStatus(404)
+                ->withHeader('Content-Type', 'application/json')
+                ->write(json_encode(['error' => 'Event not found']));
         }
 
         $adminUserId = $event['admin_user_id'];
@@ -78,6 +86,7 @@ class PaymentController
                 'cancel_url' => "http://localhost:8000/event/{$eventId}?canceled=true",
             ]);
 
+            // log the pending order in the database
             Order::create([
                 'user_id' => $userId,
                 'event_id' => $eventId,

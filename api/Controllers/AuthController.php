@@ -1,18 +1,21 @@
 <?php
+/**
+ * Author: Taniya Tucker
+ * Date: 6/23/25
+ * File: AuthController.php
+ * Description: Handles authentication for sign in, sign up, and logout.
+ */
 
 namespace api\Controllers;
 
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
-
-
 use api\Models\User;
 use api\Authentication\SessionManager;
 
 class AuthController
 {
-
-    // Show signin page
+    // shows the signin form
     public function showSignin(Request $request, Response $response): Response
     {
         ob_start();
@@ -21,48 +24,38 @@ class AuthController
         return $response;
     }
 
-    // Handle login
+    // handles signin form submission
     public function handleSignin(Request $request, Response $response): Response
     {
-        session_start();
         ob_start();
 
         $data = $request->getParsedBody();
         $email = $data['email'] ?? '';
         $password = $data['password'] ?? '';
 
-        $user = \api\Models\User::getByEmail($email);
+        $user = User::getByEmail($email);
 
+        // if user not found or password is wrong
         if (!$user || !password_verify($password, $user['password_hash'])) {
-            $response->getBody()->write('Wrong email or password');
-            return $response->withStatus(401);
+            $_SESSION['signin_error'] = 'Wrong email or password';
+            return $response->withHeader('Location', '/signin')->withStatus(302);
         }
 
-        // create a session in the db
-        \api\Authentication\SessionManager::start($user['user_id']);
+        // start session and store user info
+        SessionManager::start($user['user_id']);
 
-        file_put_contents(__DIR__ . '/../../log.txt', "ROLE FROM DB: " . $user['role'] . "\n", FILE_APPEND);
-
-        // store user info in session
         $_SESSION['user'] = [
             'user_id' => $user['user_id'],
             'role' => $user['role']
         ];
 
-        // clear any accidental output before redirect
         ob_end_clean();
 
-        file_put_contents(__DIR__ . '/../../log.txt', print_r($_SESSION, true), FILE_APPEND);
-
-        // redirect based on role
-        if ($user['role'] === 'admin') {
-            return $response->withHeader('Location', '/admin')->withStatus(302);
-        }
-
-        return $response->withHeader('Location', '/dashboard')->withStatus(302);
+        // redirect to dashboard or admin
+        return $response->withHeader('Location', $user['role'] === 'admin' ? '/admin' : '/dashboard')->withStatus(302);
     }
 
-    // Show signup page
+    // shows the signup form
     public function showSignup(Request $request, Response $response): Response
     {
         ob_start();
@@ -71,7 +64,7 @@ class AuthController
         return $response;
     }
 
-    // Handle signup
+    // handles signup form submission
     public function handleSignup(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
@@ -80,35 +73,44 @@ class AuthController
         $password = trim($data['password'] ?? '');
         $inviteCode = trim($data['invite'] ?? '');
 
+        // check for missing fields
         if (!$email || !$password || !$inviteCode) {
             return $response->withHeader('Location', '/signup?error=missing')->withStatus(302);
         }
 
-        //  Ask Python to hash the password
+        // hash the password using python script
         $passwordHash = self::hashPasswordWithPython($password);
         if (!$passwordHash) {
             return $response->withHeader('Location', '/signup?error=internal')->withStatus(302);
         }
 
+        // create user with invite code
         $userId = User::createWithInvite($email, $passwordHash, $inviteCode);
         if (!$userId) {
             error_log("Signup failed for $email with invite $inviteCode");
             return $response->withHeader('Location', '/signup?error=invite')->withStatus(302);
-
         }
 
+        // start session and set user info
+        session_start();
         SessionManager::start($userId);
+
+        $_SESSION['user'] = [
+            'user_id' => $userId,
+            'role' => 'user'
+        ];
+
+        // redirect to dashboard
         return $response->withHeader('Location', '/dashboard')->withStatus(302);
     }
 
-    // Python hash function
+    // hashes password using python script
     private static function hashPasswordWithPython(string $password): ?string
     {
         $scriptPath = __DIR__ . '/../../scripts/hash_password.py';
         $cmd = escapeshellcmd("python3 " . escapeshellarg($scriptPath) . " " . escapeshellarg($password));
         $output = shell_exec($cmd);
 
-        // TEMP: write debugging output
         file_put_contents(__DIR__ . '/../../log.txt',
             "HASH CMD: $cmd\nOUTPUT: $output\n\n",
             FILE_APPEND
@@ -117,21 +119,16 @@ class AuthController
         return $output ? trim($output) : null;
     }
 
-
-
-
-    // Python verify function
+    // verifies password using python script
     private static function verifyPasswordWithPython(string $password, string $storedHash): bool
     {
         $passwordArg = escapeshellarg($password);
         $hashArg = escapeshellarg($storedHash);
-        $python = '/Library/Frameworks/Python.framework/Versions/3.13/bin/python3'; // full path to Python
+        $python = '/Library/Frameworks/Python.framework/Versions/3.13/bin/python3';
 
-        // test
         $scriptPath = __DIR__ . '/../../scripts/verify_password.py';
         $cmd = "$python " . escapeshellarg($scriptPath) . " $passwordArg $hashArg 2>&1";
 
-        //$cmd = "$python verify_password.py $passwordArg $hashArg 2>&1";
         $output = shell_exec($cmd);
 
         file_put_contents(__DIR__ . '/../../log.txt',
@@ -145,7 +142,7 @@ class AuthController
         return trim($output) === 'true';
     }
 
-    //  logout
+    // logs the user out
     public function logout(Request $request, Response $response): Response
     {
         SessionManager::logout();

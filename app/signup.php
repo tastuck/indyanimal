@@ -26,11 +26,10 @@
     <input type="text" name="invite" placeholder="Invite Code" required>
 
     <button type="submit">Sign Up</button>
-
-    <!-- spinner (starts hidden) still need to implement -->
-    <div class="img-loading-container" style="display: none;">
-        <img src="/img/spinner.gif" alt="Loading..." />
+    <div class="spinner-container" style="display: none;">
+        <div class="spinner"></div>
     </div>
+
 
     <?php if (isset($_GET['error'])): ?>
         <p class="error">

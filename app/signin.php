@@ -36,9 +36,11 @@
 
     <button type="submit">Sign In</button>
 
-    <?php if (isset($_GET['error'])): ?>
-        <p class="error">Invalid email or password.</p>
+    <?php if (isset($_SESSION['signin_error'])): ?>
+        <p class="error"><?php echo $_SESSION['signin_error']; ?></p>
+        <?php unset($_SESSION['signin_error']); ?>
     <?php endif; ?>
+
 </form>
 
 <p class="form-note" style="text-align: center;">

@@ -17,7 +17,7 @@ use api\Models\Tag;
 
 class MediaController
 {
-    // handle media upload (regular or lost & found)
+    // handle media upload (regular media or lost & found)
     public function uploadMedia(Request $request, Response $response): Response
     {
         file_put_contents(__DIR__ . '/../../log.txt',
@@ -32,6 +32,7 @@ class MediaController
         $data = $request->getParsedBody();
         $files = $request->getUploadedFiles();
 
+        // require media file
         if (!isset($files['media_file'])) {
             $response->getBody()->write(json_encode(['error' => 'No media file uploaded']));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -39,6 +40,7 @@ class MediaController
 
         $mediaFile = $files['media_file'];
 
+        // check for upload errors
         if ($mediaFile->getError() !== UPLOAD_ERR_OK) {
             $response->getBody()->write(json_encode(['error' => 'Upload error code: ' . $mediaFile->getError()]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
@@ -47,11 +49,13 @@ class MediaController
         $mediaCategory = $data['media_category'] ?? 'regular';
         $eventId = isset($data['event_id']) ? (int)$data['event_id'] : null;
 
+        // require an event ID
         if (!$eventId) {
             $response->getBody()->write(json_encode(['error' => 'Event ID is required']));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
+        // check file type
         $allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
         $fileType = $mediaFile->getClientMediaType();
@@ -68,6 +72,7 @@ class MediaController
             }
         }
 
+        // save the file to the uploads folder
         $uploadDir = __DIR__ . '/../../uploads/';
         $filename = bin2hex(random_bytes(16)) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $mediaFile->getClientFilename());
         $filepath = $uploadDir . $filename;
@@ -79,6 +84,7 @@ class MediaController
             return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
         }
 
+        // figure out what type of media it is
         if ($mediaCategory === 'lostfound') {
             $mediaType = 'lost_found';
         } elseif (in_array($fileType, $allowedImageTypes)) {
@@ -87,6 +93,7 @@ class MediaController
             $mediaType = 'video';
         }
 
+        // insert media into database
         $mediaId = Media::insertMedia([
             'user_id' => $userId,
             'event_id' => $eventId,
@@ -102,7 +109,7 @@ class MediaController
             return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
         }
 
-        // Handle tags only for regular media
+        // handle tags if regular media
         if ($mediaCategory === 'regular') {
             $tags = $data['tags'] ?? [];
             if (!is_array($tags)) {
@@ -110,13 +117,12 @@ class MediaController
             }
 
             $validTagIds = Tag::getValidTagIds($tags);
-
             foreach ($validTagIds as $tagId) {
                 Media::addTagToMedia($mediaId, $tagId);
             }
         }
 
-        // AI check for regular media
+        // run AI check on regular media only
         if ($mediaCategory === 'regular') {
             $cmd = escapeshellcmd("python3 " . __DIR__ . "/../../ai/check_ai.py " . escapeshellarg($filepath));
             $output = shell_exec($cmd);
@@ -136,7 +142,7 @@ class MediaController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    // list all approved media for browsing, used by users to see public media
+    // return a list of approved media (used on public-facing pages)
     public function listApprovedMedia(Request $request, Response $response): Response
     {
         $media = Media::getApprovedMedia();
@@ -144,15 +150,12 @@ class MediaController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    // show the upload page with event and tag dropdowns
     public function viewUploadPage(Request $request, Response $response): Response
     {
-        // Get events for dropdown
         $events = \api\Models\AdminModel::listEvents();
-
-        // Get all tags for the multi-select
         $tags = \api\Models\Tag::getAllTags();
 
-        // Now include the view with $events and $tags defined
         ob_start();
         include __DIR__ . '/../../app/upload.php';
         $output = ob_get_clean();
@@ -161,7 +164,7 @@ class MediaController
         return $response->withHeader('Content-Type', 'text/html');
     }
 
-    //search
+    // search media based on event, date, tags, and archive state
     public function search(Request $request, Response $response): Response
     {
         $queryParams = $request->getQueryParams();
@@ -176,7 +179,4 @@ class MediaController
         $response->getBody()->write(json_encode($results));
         return $response->withHeader('Content-Type', 'application/json');
     }
-
-
-
 }

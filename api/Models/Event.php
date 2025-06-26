@@ -8,13 +8,13 @@
 
 
 
-
 namespace api\Models;
 
 use PDO;
 
 class Event
 {
+    // reuse the PDO connection
     private static function getPDO(): PDO
     {
         return new PDO(
@@ -28,6 +28,7 @@ class Event
         );
     }
 
+    // fetch a single event by its ID
     public static function getById(int $eventId): ?array
     {
         $pdo = self::getPDO();
@@ -37,11 +38,13 @@ class Event
         return $event ?: null;
     }
 
+    // return true if the event is active and tickets can be bought
     public static function isBuyable(array $event): bool
     {
         return !$event['is_cancelled'] && !$event['is_postponed'] && !$event['is_archived'];
     }
 
+    // return all upcoming events (today and beyond)
     public static function getUpcomingEvents(): array
     {
         $pdo = new \PDO(
@@ -57,6 +60,7 @@ class Event
         return $stmt->fetchAll();
     }
 
+    // search for events by optional title and date filters
     public static function searchEvents(?string $title = null, ?string $date = null): array
     {
         $pdo = self::getPDO();
@@ -80,6 +84,4 @@ class Event
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
-
-
 }

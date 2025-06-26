@@ -26,7 +26,7 @@ class Media
         );
     }
 
-    // insert media record and return new media_id
+    // insert new media record and return its ID
     public static function insertMedia(array $data): int
     {
         $pdo = self::getPDO();
@@ -50,7 +50,7 @@ class Media
         return (int)$pdo->lastInsertId();
     }
 
-    // update AI flagged column for given media id
+    // update AI flag column for a media item
     public static function updateAIFlag(int $mediaId, int $flag): void
     {
         $pdo = self::getPDO();
@@ -59,7 +59,7 @@ class Media
         $stmt->execute([$flag, $mediaId]);
     }
 
-    // get media by id (optional, useful later)
+    // get a single media item by ID
     public static function getById(int $mediaId): ?array
     {
         $pdo = self::getPDO();
@@ -68,30 +68,28 @@ class Media
         $stmt->execute([$mediaId]);
 
         $media = $stmt->fetch();
-
         return $media ?: null;
     }
 
-    // fetch pending media for admin approval (similar to AdminModel)
+    // return all pending media with attached event details
     public static function getPendingMediaWithDetails(): array
     {
         $pdo = self::getPDO();
 
         $stmt = $pdo->query("
-        SELECT 
-            m.media_id, m.filepath, m.media_type, m.media_category, m.uploaded_at,
-            m.user_id, e.title AS event_title, e.event_date
-        FROM Media m
-        JOIN Events e ON m.event_id = e.event_id
-        WHERE m.approved = 0
-        ORDER BY m.uploaded_at DESC
-    ");
+            SELECT 
+                m.media_id, m.filepath, m.media_type, m.media_category, m.uploaded_at,
+                m.user_id, e.title AS event_title, e.event_date
+            FROM Media m
+            JOIN Events e ON m.event_id = e.event_id
+            WHERE m.approved = 0
+            ORDER BY m.uploaded_at DESC
+        ");
 
         return $stmt->fetchAll();
     }
 
-
-    // approve media (set approved=1)
+    // approve a media item (set approved = 1)
     public static function approveMedia(int $mediaId): void
     {
         $pdo = self::getPDO();
@@ -100,7 +98,7 @@ class Media
         $stmt->execute([$mediaId]);
     }
 
-    // reject media (delete record)
+    // reject a media item (delete from DB)
     public static function rejectMedia(int $mediaId): void
     {
         $pdo = self::getPDO();
@@ -109,7 +107,7 @@ class Media
         $stmt->execute([$mediaId]);
     }
 
-    // get all approved media ordered by newest first
+    // return all approved media (used for public gallery)
     public static function getApprovedMedia(): array
     {
         $pdo = self::getPDO();
@@ -117,7 +115,7 @@ class Media
         return $stmt->fetchAll();
     }
 
-    // insert link between media and tag
+    // associate a tag with a media item
     public static function addTagToMedia(int $mediaId, int $tagId): bool
     {
         $pdo = self::getPDO();
@@ -126,18 +124,18 @@ class Media
         return $stmt->execute([$mediaId, $tagId]);
     }
 
-    //search
+    // search across media with filters
     public static function search(?string $eventTitle, ?string $eventDate, array $tagIds, bool $includeArchived): array
     {
         $pdo = self::getPDO();
 
         $query = "
-        SELECT m.*, e.title AS event_title, e.event_date, e.is_archived
-        FROM Media m
-        JOIN Events e ON m.event_id = e.event_id
-        LEFT JOIN Media_Tags mt ON m.media_id = mt.media_id
-        WHERE m.approved = 1
-    ";
+            SELECT m.*, e.title AS event_title, e.event_date, e.is_archived
+            FROM Media m
+            JOIN Events e ON m.event_id = e.event_id
+            LEFT JOIN Media_Tags mt ON m.media_id = mt.media_id
+            WHERE m.approved = 1
+        ";
 
         $params = [];
 
@@ -158,8 +156,8 @@ class Media
         if (!empty($tagIds)) {
             $placeholders = implode(',', array_fill(0, count($tagIds), '?'));
             $query .= " AND m.media_id IN (
-            SELECT media_id FROM Media_Tags WHERE tag_id IN ($placeholders)
-        )";
+                SELECT media_id FROM Media_Tags WHERE tag_id IN ($placeholders)
+            )";
             $params = array_merge($params, $tagIds);
         }
 
@@ -169,5 +167,4 @@ class Media
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
-
 }

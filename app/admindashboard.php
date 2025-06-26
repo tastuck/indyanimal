@@ -7,41 +7,42 @@
  */
 ?>
 
-<?php include 'admin_header.php';?>
+<?php
+use api\Models\AdminModel;
+use api\Authentication\SessionManager;
+
+include 'admin_header.php';
+
+$adminId = SessionManager::getUserId();
+$eventCount = AdminModel::countActiveEventsForAdmin($adminId);
+?>
 
 <h2>Admin Dashboard</h2>
 
-<ul style="list-style: none; padding-left: 0;">
-    <li style="margin-bottom: 1em;">
-        <a href="/admin/invites">
-            <button>Generate Invite Code</button>
-        </a>
-    </li>
+<section>
+    <h3>Summary</h3>
+    <ul style="list-style: none; padding-left: 0; line-height: 2;">
+        <li>This section would pull from Stripe, orders, and events
+                <br> to give admins summary stats updated dynamically </li>
+        <li><strong>Active Events:</strong> <?= $eventCount ?></li>
+        <li><strong>Total Ticket Revenue (via Stripe):</strong> $12,540.00</li>
+        <li><strong>Tickets Sold This Month:</strong> 287</li>
+        <li><strong>Top Event:</strong> Emo Night </li>
+    </ul>
+</section>
 
-    <li style="margin-bottom: 1em;">
-        <a href="/admin/media">
-            <button>Approve Media Submissions</button>
-        </a>
-    </li>
+<hr>
 
-    <li style="margin-bottom: 1em;">
-        <a href="/admin/events">
-            <button>Create New Event</button>
-        </a>
-    </li>
-
-    <li style="margin-bottom: 1em;">
-        <a href="/admin/stages">
-            <button>Create New Stage</button>
-        </a>
-    </li>
-</ul>
-
-
-
-
-
+<section>
+    <h3>Stripe Overview (Mock Data)</h3>
+    <p>This section would show real Stripe analytics, such as:</p>
+    <ul style="line-height: 2;">
+        <li>⚡ Revenue trends by day/week/month</li>
+        <li>🧾 Refunds issued and dispute activity</li>
+        <li>📈 Conversion rates from invite → ticket purchase</li>
+        <li>💳 Payout schedules and gross/net balances</li>
+    </ul>
+    <p style="font-style: italic; color: #555;">Stripe integration planned but not implemented.</p>
+</section>
 
 <?php include 'footer.php'; ?>
-
-

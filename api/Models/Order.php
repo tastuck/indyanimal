@@ -12,6 +12,7 @@ use PDO;
 
 class Order
 {
+    // get PDO connection (same pattern as other models)
     private static function getPDO(): PDO
     {
         return new PDO(
@@ -25,6 +26,7 @@ class Order
         );
     }
 
+    // create a new order and return its ID
     public static function create(array $data): int
     {
         $pdo = self::getPDO();
@@ -48,6 +50,7 @@ class Order
         return (int)$pdo->lastInsertId();
     }
 
+    // get all orders, most recent first
     public static function getAll(): array
     {
         $pdo = self::getPDO();
@@ -55,6 +58,7 @@ class Order
         return $stmt->fetchAll();
     }
 
+    // get all orders for a specific user
     public static function getByUser(int $userId): array
     {
         $pdo = self::getPDO();
@@ -63,11 +67,11 @@ class Order
         return $stmt->fetchAll();
     }
 
+    // mark an order complete using its provider ID
     public static function markAsComplete(string $providerOrderId): void
     {
         $pdo = self::getPDO();
         $stmt = $pdo->prepare("UPDATE Orders SET status = 'complete', updated_at = NOW() WHERE provider_order_id = ?");
         $stmt->execute([$providerOrderId]);
     }
-
 }

@@ -27,7 +27,6 @@ if (!isset($_SESSION['user'])) {
     <nav>
         <a href="/dashboard">Home</a> |
         <a href="/media/upload">Upload Media</a> |
-<!--        <a href="/media/search">Search Media</a> |-->
         <a href="/events">Browse Events</a>      |
         <a href="/signout">Logout</a>
     </nav>

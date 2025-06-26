@@ -3,21 +3,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tagSelect = $('#search-tags');
     const resultDiv = document.getElementById('search-results');
 
-    //clear date stuff
+
     document.getElementById('clear-date').addEventListener('click', () => {
         document.getElementById('search-date').value = '';
     });
 
-    // turn the tag box into a multi-select thing
     tagSelect.select2({
         placeholder: "Select tags",
         allowClear: true
     });
 
-    // force the dropdown to behave visually
     $('.select2-container').attr('style', 'width: 100% !important; z-index: 1000;');
 
-    // load upcoming events and show them in the list
     try {
         const eventRes = await fetch('/api/events/upcoming');
         const events = await eventRes.json();
@@ -36,7 +33,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         eventList.innerHTML = '<li>Error loading events.</li>';
     }
 
-    // get all tags and drop them into the select box
     try {
         const tagRes = await fetch('/api/tags');
         const tags = await tagRes.json();
@@ -49,7 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Error loading tags:', err);
     }
 
-    // handle the search form when the user clicks search
     document.getElementById('search-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         resultDiv.textContent = 'Searching...';
@@ -69,7 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const res = await fetch('/media/search?' + params.toString());
             const data = await res.json();
 
-            // if nothing matched the search
+
             if (!Array.isArray(data) || data.length === 0) {
                 const filters = [];
 
@@ -94,13 +89,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 resultDiv.innerHTML = `
                     <p><strong>No media results found</strong> ${reasonText}.</p>
                 `;
-                //clear after results
+
                 document.getElementById('search-form').reset();
                 tagSelect.val(null).trigger('change');
 
 
             } else {
-                // show all matching media
                 resultDiv.innerHTML = data.map(media => {
                     let display;
 

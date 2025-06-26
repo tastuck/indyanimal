@@ -1,5 +1,6 @@
 <?php
 
+
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 use api\Middleware\RequireAuth;
@@ -22,6 +23,14 @@ return function (App $app) {
     $app->post('/signup', function ($request, $response, $args) {
         return (new \api\Controllers\AuthController())->handleSignup($request, $response);
     });
+
+    $app->get('/mission', function ($request, $response, $args) {
+        ob_start();
+        include __DIR__ . '/../app/mission.php';
+        $response->getBody()->write(ob_get_clean());
+        return $response->withHeader('Content-Type', 'text/html');
+    });
+
 
     // Protected routes
     $app->group('', function (RouteCollectorProxy $group) {

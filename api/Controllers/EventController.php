@@ -15,7 +15,7 @@ use api\Models\Event;
 
 class EventController
 {
-    // show a specific event by ID
+    // show a specific event page by ID
     public function viewEvent(Request $request, Response $response, array $args): Response
     {
         $eventId = (int)$args['id'];
@@ -33,7 +33,7 @@ class EventController
         return $response->withHeader('Content-Type', 'text/html');
     }
 
-    // return event JSON (for checkout logic)
+    // return a single event as JSON (used in checkout flow)
     public function getEventJSON(Request $request, Response $response, array $args): Response
     {
         $eventId = (int)$args['id'];
@@ -47,7 +47,7 @@ class EventController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    // show a list of all events (searchable/browsable)
+    // show the full list of events (JS fetches actual data)
     public function listAllEvents(Request $request, Response $response): Response
     {
         $queryParams = $request->getQueryParams();
@@ -56,7 +56,6 @@ class EventController
 
         $events = Event::searchEvents($title, $date);
 
-        // Just show HTML page for now (will fetch events via JS)
         ob_start();
         include __DIR__ . '/../../app/events.php';
         $response->getBody()->write(ob_get_clean());
@@ -64,7 +63,7 @@ class EventController
         return $response->withHeader('Content-Type', 'text/html');
     }
 
-    // json might circle badk to this
+    // return a filtered list of events as JSON
     public function searchEventsJSON(Request $request, Response $response): Response
     {
         $queryParams = $request->getQueryParams();
@@ -77,11 +76,11 @@ class EventController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    // return upcoming events only (used on dashboard or landing)
     public function getUpcomingEventsJSON(Request $request, Response $response): Response
     {
         $events = Event::getUpcomingEvents();
         $response->getBody()->write(json_encode($events));
         return $response->withHeader('Content-Type', 'application/json');
     }
-
 }

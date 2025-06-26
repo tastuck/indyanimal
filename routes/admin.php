@@ -60,4 +60,9 @@ return function (App $app) {
     $app->get('/admin/invite', [AdminController::class, 'viewInvitePage'])
         ->add(new AdminMiddleware())
         ->add(new RequireAuth());
+
+    $app->get('/admin/events', [AdminController::class, 'viewEventPage'])
+        ->add(new AdminMiddleware())
+        ->add(new RequireAuth());
+
 };

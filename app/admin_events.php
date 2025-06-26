@@ -1,38 +1,49 @@
-<?php
-/**
- * Author: Taniya Tucker
- * Date: 6/23/25
- * File: admin_events.php
- * Description: events admins post
- */
-?>
-
 <?php include 'admin_header.php'; ?>
 
-<h2>Create New Event</h2>
+<h2>Event Management</h2>
+
+<label>
+    <input type="radio" name="mode" value="create" checked> Create New Event
+</label>
+<label style="margin-left: 1em;">
+    <input type="radio" name="mode" value="update"> Update Existing Event
+</label>
+
+<br><br>
+
+<div id="updateSelect" style="display:none;">
+    <label for="eventSelector">Select an event to update:</label>
+    <select id="eventSelector">
+        <option value="">-- Choose Event --</option>
+    </select>
+</div>
+
+<br>
 
 <form id="eventForm">
-    <!-- Match DB column name 'title' -->
-    <label>Event Name: <input type="text" name="title" required></label><br><br>
+    <input type="hidden" name="event_id" id="event_id">
 
-    <!-- Match DB column name 'event_date' -->
-    <label>Date: <input type="date" name="event_date" required></label><br><br>
+    <label>Event Name:
+        <input type="text" name="title" id="title" required>
+    </label><br><br>
 
-    <label for="price_cents">Price (in cents):</label>
-    <input type="number" name="price_cents" id="price_cents" value="500" min="0" required>
+    <label>Date:</label>
+    <div class="date-wrapper">
+        <input type="date" name="event_date" id="event_date" required>
+        <button type="button" id="clear-date" title="Clear date">&times;</button>
+    </div>
+    <br><br>
 
-    <button type="submit">Create Event</button>
+
+    <label>Price (in cents):
+        <input type="number" name="price_cents" id="price_cents" value="500" min="0" required>
+    </label><br><br>
+
+    <button type="submit" id="submitBtn">Create Event</button>
 </form>
 
 <p id="eventMsg"></p>
 
-<hr>
-
-<h2>Existing Events</h2>
-<div id="eventList"></div>
-
-<!-- Link to external JavaScript -->
 <script src="/js/admin_events.js"></script>
 
 <?php include 'footer.php'; ?>
-

@@ -8,45 +8,43 @@
 
 namespace api\Models;
 
+use PDO;
+
 class User
 {
-    // grab a user from the database using their hashed email
+    // fetch user by email (hashed with salt)
     public static function getByEmail(string $email): ?array
     {
-        $pdo = new \PDO(
+        $pdo = new PDO(
             'mysql:host=127.0.0.1;dbname=indyanimal;charset=utf8mb4',
-            'root', '',
+            'root',
+            '',
             [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
             ]
-
         );
 
-        //  never store raw emails, so hash it with the salt first
         $salt = $_ENV['EMAIL_SALT'] ?? '';
         $emailHash = hash('sha256', $salt . strtolower(trim($email)));
 
-        // find the user by their email hash
-        //$stmt = $pdo->prepare("SELECT user_id, password_hash FROM Users WHERE email_hash = ?");
         $stmt = $pdo->prepare("SELECT user_id, password_hash, role FROM Users WHERE email_hash = ?");
-
         $stmt->execute([$emailHash]);
-        $user = $stmt->fetch();
 
+        $user = $stmt->fetch();
         return $user ?: null;
     }
 
-    // make a new user account, but only if the invite code is valid
-    // the password should already be hashed (from Python)
+    // create a new user account using a valid invite code
     public static function createWithInvite(string $email, string $passwordHash, string $inviteCode): ?int
     {
-        $pdo = new \PDO(
+        $pdo = new PDO(
             'mysql:host=127.0.0.1;dbname=indyanimal;charset=utf8mb4',
-            'root', '',
+            'root',
+            '',
             [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
             ]
         );
 
@@ -76,7 +74,7 @@ class User
             $pdo->beginTransaction();
 
             $stmt = $pdo->prepare("INSERT INTO Users (email_hash, password_hash, role, created_at, last_login)
-                               VALUES (?, ?, 'user', NOW(), NOW())");
+                                   VALUES (?, ?, 'user', NOW(), NOW())");
             $stmt->execute([$emailHash, $passwordHash]);
             $userId = $pdo->lastInsertId();
 
@@ -92,5 +90,4 @@ class User
             return null;
         }
     }
-
 }

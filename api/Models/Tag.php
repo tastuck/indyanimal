@@ -6,13 +6,13 @@
  * Description:
  */
 
-
 namespace api\Models;
 
 use PDO;
 
 class Tag
 {
+    // get PDO connection (same setup as other models)
     private static function getPDO(): PDO
     {
         return new PDO(
@@ -26,6 +26,7 @@ class Tag
         );
     }
 
+    // filter a list of tag IDs to include only valid ones
     public static function getValidTagIds(array $tagIds): array
     {
         if (empty($tagIds)) {
@@ -43,7 +44,7 @@ class Tag
         return array_column($rows, 'tag_id');
     }
 
-    // Optional: fetch all tags ordered by type and name
+    // fetch all tags, sorted by type then name
     public static function getAllTags(): array
     {
         $pdo = self::getPDO();
